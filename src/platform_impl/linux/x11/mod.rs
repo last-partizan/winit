@@ -47,6 +47,7 @@ use self::{
     ime::{Ime, ImeCreationError, ImeReceiver, ImeSender},
     util::modifiers::ModifierKeymap,
 };
+use super::common::xkb_state::KbState;
 use crate::{
     error::OsError as RootOsError,
     event::{Event, StartCause},
@@ -195,6 +196,10 @@ impl<T: 'static> EventLoop<T> {
         let (user_sender, user_channel) = std::sync::mpsc::channel();
         let (redraw_sender, redraw_channel) = std::sync::mpsc::channel();
 
+        let kb_state =
+            KbState::from_x11_xkb(unsafe { (xconn.xlib_xcb.XGetXCBConnection)(xconn.display) })
+                .unwrap();
+
         let target = Rc::new(RootELW {
             p: super::EventLoopWindowTarget::X(EventLoopWindowTarget {
                 ime,
@@ -220,6 +225,7 @@ impl<T: 'static> EventLoop<T> {
             randr_event_offset,
             ime_receiver,
             xi2ext,
+            kb_state,
             mod_keymap,
             device_mod_state: Default::default(),
             num_touch: 0,
