@@ -2,6 +2,7 @@ use std::{slice, str};
 
 use super::*;
 use crate::keyboard::ModifiersState;
+use crate::platform_impl::platform::common::xkb_state::ModifiersState as XkbModifiersState;
 
 pub const VIRTUAL_CORE_POINTER: c_int = 2;
 pub const VIRTUAL_CORE_KEYBOARD: c_int = 3;
@@ -22,6 +23,15 @@ impl ModifiersState {
         m.set(ModifiersState::SHIFT, mask & ffi::ShiftMask != 0);
         m.set(ModifiersState::CONTROL, mask & ffi::ControlMask != 0);
         m.set(ModifiersState::SUPER, mask & ffi::Mod4Mask != 0);
+        m
+    }
+
+    pub(crate) fn from_xkb_modifiers(xkb: XkbModifiersState) -> Self {
+        let mut m = ModifiersState::empty();
+        m.set(ModifiersState::SHIFT, xkb.shift);
+        m.set(ModifiersState::CONTROL, xkb.ctrl);
+        m.set(ModifiersState::ALT, xkb.alt);
+        m.set(ModifiersState::SUPER, xkb.logo);
         m
     }
 }

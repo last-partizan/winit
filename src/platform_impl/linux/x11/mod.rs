@@ -44,13 +44,13 @@ use self::{
     dnd::{Dnd, DndState},
     event_processor::EventProcessor,
     ime::{Ime, ImeCreationError, ImeReceiver, ImeSender},
-    util::modifiers::ModifierKeymap,
 };
 use super::common::xkb_state::KbState;
 use crate::{
     error::OsError as RootOsError,
     event::{Event, StartCause},
     event_loop::{ControlFlow, EventLoopClosed, EventLoopWindowTarget as RootELW},
+    keyboard::ModifiersState,
     platform_impl::{platform::sticky_exit_callback, PlatformSpecificWindowBuilderAttributes},
     window::WindowAttributes,
 };
@@ -182,9 +182,6 @@ impl<T: 'static> EventLoop<T> {
 
         xconn.update_cached_wm_info(root);
 
-        let mut mod_keymap = ModifierKeymap::new();
-        mod_keymap.reset_from_x_connection(&xconn);
-
         let poll = Poll::new().unwrap();
         let waker = Arc::new(Waker::new(poll.registry(), USER_REDRAW_TOKEN).unwrap());
 
@@ -225,8 +222,7 @@ impl<T: 'static> EventLoop<T> {
             ime_receiver,
             xi2ext,
             kb_state,
-            mod_keymap,
-            device_mod_state: Default::default(),
+            modifiers: ModifiersState::default(),
             num_touch: 0,
             first_touch: None,
             active_window: None,
